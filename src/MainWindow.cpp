@@ -49,7 +49,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent){
 
 
 QBoxLayout *MainWindow::createTopLayout(){
-    auto titleLabel = new QLabel(tr("<font size=+9>Thank you for installing PantherX</font><br><font size=+2>We're almost there, just 3 more steps.</font>"));
+    auto titleLabel = new QLabel("<font size=+8>Thank you for installing PantherX</font><br><font size=+2>We're almost there, just 3 more steps.</font>");
+    auto font = titleLabel->font();
+    font.setPointSize(17);
+    titleLabel->setFont(font);
 
     auto layout = new QHBoxLayout();
     layout->addWidget(titleLabel);
@@ -57,8 +60,12 @@ QBoxLayout *MainWindow::createTopLayout(){
 }
 
 QBoxLayout *MainWindow::createContentLayout(){
-    //
-    auto passwordsLabel = new QLabel("<font size=+1>Set a user and root password</font>", this);
+    // password widgets
+    auto passwordsLabel = new QLabel("Set a user and root password", this);
+    auto font = passwordsLabel->font();
+    font.setPointSize(18);
+    passwordsLabel->setFont(font);
+    
     passwordsLabel->setSizePolicy(QSizePolicy::MinimumExpanding,QSizePolicy::Minimum);
     auto passwordButton = new QPushButton("Run", this);
     connect(passwordButton, &QPushButton::released,[&](){
@@ -67,18 +74,20 @@ QBoxLayout *MainWindow::createContentLayout(){
     auto passwordsLayout = new QHBoxLayout();
     passwordsLayout->addWidget(passwordsLabel);
     passwordsLayout->addWidget(passwordButton);
-    //
-    
-    auto updateSystemLabel = new QLabel("<font size=+1>Update your system</font>", this);
+    // update system widgets
+    auto updateSystemLabel = new QLabel("Update your system", this);
     updateSystemLabel->setSizePolicy(QSizePolicy::MinimumExpanding,QSizePolicy::Minimum);
+    updateSystemLabel->setFont(font);
+
     auto updateSystemButton = new QPushButton("Run", this);
     connect(updateSystemButton, &QPushButton::released, [&](){
         qDebug() << "updateSystemButton: TODO";
         QDesktopServices::openUrl(QUrl("px-software:list=system_updates"));
     });
-    
-    auto themeLabel = new QLabel("<font size=+1>Switch Theme</font>", this);
+    // theme widgets
+    auto themeLabel = new QLabel("Switch Theme", this);
     themeLabel->setSizePolicy(QSizePolicy::MinimumExpanding,QSizePolicy::Minimum);
+    themeLabel->setFont(font);
     auto themeCheckBox = new QCheckBox(this);
     connect(themeCheckBox, &QCheckBox::toggled,[&](int checked){
         for(auto &sec: sections){
@@ -112,9 +121,10 @@ QBoxLayout *MainWindow::createContentLayout(){
     auto themeCheckBoxLayout = new QHBoxLayout();
     themeCheckBoxLayout->setAlignment(Qt::AlignCenter);
     themeCheckBoxLayout->addWidget(themeCheckBox);
-    
-    auto rebootLabel = new QLabel("<font size=+1>Reboot</font>", this);
+    // reboot widgets
+    auto rebootLabel = new QLabel("Reboot", this);
     rebootLabel->setSizePolicy(QSizePolicy::MinimumExpanding,QSizePolicy::Minimum);
+    rebootLabel->setFont(font);
     auto rebootButton = new QPushButton("Run", this);
     connect(rebootButton, &QPushButton::released,[&](){
         QMessageBox::StandardButton reply;
@@ -126,21 +136,23 @@ QBoxLayout *MainWindow::createContentLayout(){
     });
 
     auto leftLayout = new QVBoxLayout();
+    leftLayout->setSpacing(20);
     leftLayout->addWidget(passwordsLabel);
     leftLayout->addWidget(updateSystemLabel);
     leftLayout->addWidget(themeLabel);
     leftLayout->addWidget(rebootLabel);
 
     auto rightLayout = new QVBoxLayout();
+    rightLayout->setSpacing(20);
     rightLayout->setAlignment(Qt::AlignCenter);
     rightLayout->addWidget(passwordButton);
     rightLayout->addWidget(updateSystemButton);
     rightLayout->addLayout(themeCheckBoxLayout);
     rightLayout->addWidget(rebootButton);
-
     //
     auto settingsLayout = new QHBoxLayout();
     settingsLayout->addLayout(leftLayout);
+    settingsLayout->addSpacing(200);
     settingsLayout->addLayout(rightLayout);
 
     settingsWidget = new QWidget(this);
@@ -163,8 +175,11 @@ QBoxLayout *MainWindow::createContentLayout(){
 }
 
 QBoxLayout *MainWindow::createBottomLayout(){
-    auto bottomLabel = new QLabel("<font size=+3>Find more information on our Wiki at <a href=\"wiki.pantherx.org\">wiki.pantherx.org</a><br>\
-                                    or get help on the forum at <a href=\"community.pantherx.org\">community.pantherx.org</a>.</font>");
+    auto bottomLabel = new QLabel("Find more information on our Wiki at <a href=\"wiki.pantherx.org\">wiki.pantherx.org</a><br>\
+                                    or get help on the forum at <a href=\"community.pantherx.org\">community.pantherx.org</a>.");
+    auto font = bottomLabel->font();
+    font.setPointSize(22);
+    bottomLabel->setFont(font);
     bottomLabel->setTextInteractionFlags(Qt::TextBrowserInteraction);
     bottomLabel->setAlignment(Qt::AlignBottom);
 
