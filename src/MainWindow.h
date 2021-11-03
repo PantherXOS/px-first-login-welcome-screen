@@ -4,8 +4,10 @@
 #include <QMainWindow>
 #include <QBoxLayout>
 #include <QWidget>
+#include <QPushButton>
 
 #include "px-settings-service/SettingsObjects.h"
+#include "AsyncTaskRunner.h"
 
 class MainWindow : public QMainWindow {
     public:
@@ -21,6 +23,11 @@ class MainWindow : public QMainWindow {
 
         SettingsObjects::SettingsSectionList sections;
         QWidget *settingsWidget;
+        QPushButton *rebootButton;
+        AsyncTaskRunner rebootTaskRunner;
+        AsyncTaskRunner passwordTaskRunner;
+        AsyncTaskRunner softwareUpdateTaskRunner;
+        AsyncTaskRunner rootPasswordTaskRunner;
 };
 
 #endif

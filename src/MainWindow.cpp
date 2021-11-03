@@ -3,7 +3,6 @@
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QLabel>
-#include <QPushButton>
 #include <QDebug>
 #include <QDBusInterface>
 #include <QDBusPendingReply>
@@ -69,7 +68,11 @@ QBoxLayout *MainWindow::createContentLayout(){
     passwordsLabel->setSizePolicy(QSizePolicy::MinimumExpanding,QSizePolicy::Minimum);
     auto passwordButton = new QPushButton("Run", this);
     connect(passwordButton, &QPushButton::released,[&](){
-        // passwd $(whoami); echo "Set the root password"; sudo passwd root
+        passwordTaskRunner.asyncRun("sh", QStringList() << "-c" << "qterminal -e passwd \"$(whoami)\"");
+    });
+    connect(&passwordTaskRunner, &AsyncTaskRunner::done,[&](const QString &outData, const QString &errData){
+        rootPasswordTaskRunner.asyncRun("sh", QStringList() << "-c" << "qterminal -e sudo passwd \"root\"");
+        qDebug() << "DONE: " << outData << errData;
     });
     auto passwordsLayout = new QHBoxLayout();
     passwordsLayout->addWidget(passwordsLabel);
@@ -81,8 +84,8 @@ QBoxLayout *MainWindow::createContentLayout(){
 
     auto updateSystemButton = new QPushButton("Run", this);
     connect(updateSystemButton, &QPushButton::released, [&](){
-        qDebug() << "updateSystemButton: TODO";
-        QDesktopServices::openUrl(QUrl("px-software:list=system_updates"));
+        if(!softwareUpdateTaskRunner.running()) 
+            softwareUpdateTaskRunner.asyncRun("px-software", QStringList() << "-i" << "system_updates");
     });
     // theme widgets
     auto themeLabel = new QLabel("Switch Theme", this);
@@ -125,16 +128,26 @@ QBoxLayout *MainWindow::createContentLayout(){
     auto rebootLabel = new QLabel("Reboot", this);
     rebootLabel->setSizePolicy(QSizePolicy::MinimumExpanding,QSizePolicy::Minimum);
     rebootLabel->setFont(font);
-    auto rebootButton = new QPushButton("Run", this);
+    rebootButton = new QPushButton("Run", this);
     connect(rebootButton, &QPushButton::released,[&](){
         QMessageBox::StandardButton reply;
-        reply = QMessageBox::question(this, "Reboot", "Are you sure?",
+        reply = QMessageBox::question(this, "Reboot", "Are you sure?                               ",
                                         QMessageBox::Yes|QMessageBox::No);
         if (reply == QMessageBox::Yes) {
-            reboot();
+            rebootButton->setDisabled(true);
+            rebootButton->setText("Wait ...");
+            rebootTaskRunner.asyncRun("guix", QStringList() << "package" << "-i" << "xdg-utils");
         }
     });
-
+    connect(&rebootTaskRunner, &AsyncTaskRunner::done,[&](const QString &outData, const QString &errData){
+        reboot();
+        qDebug() << "DONE: " << outData << errData;
+    });
+    connect(&rebootTaskRunner, &AsyncTaskRunner::failed,[&](const QString &message){
+        rebootButton->setEnabled(true);
+        rebootButton->setText("Run");
+        qDebug() << "Failed: " << message;
+    });
     auto leftLayout = new QVBoxLayout();
     leftLayout->setSpacing(20);
     leftLayout->addWidget(passwordsLabel);

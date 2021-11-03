@@ -36,6 +36,7 @@ FILE(GLOB SOURCES
         src/px-settings-service/RPCclient.h
         src/px-settings-service/RpcSettingsClient.cpp src/px-settings-service/RpcSettingsClient.h
         src/px-settings-service/SettingsObjects.cpp src/px-settings-service/SettingsObjects.h
+        src/AsyncTaskRunner.cpp src/AsyncTaskRunner.h
         )
 
 add_executable(px-first-login-welcome-screen ${SOURCES} ${CapnpSources} ${CapnpHeaders})
