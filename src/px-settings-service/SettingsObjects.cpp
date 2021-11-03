@@ -93,7 +93,7 @@ bool SettingsObjects::settingsObj2rpc(SettingsObjects::SettingsSection section, 
     rpc.setTitle(section.title);
 
     ::capnp::List<RPCSettingsSection>::Builder rpcSubsections = rpc.initSubsections(section.subsections.size());
-    for(int s=0; s<section.subsections.size(); s++){
+    for(std::size_t s=0; s<section.subsections.size(); s++){
         RPCSettingsSection::Builder subsec = rpcSubsections[s];
         settingsObj2rpc(section.subsections.at(s),subsec);
     }
@@ -105,11 +105,11 @@ bool SettingsObjects::settingsObj2rpc(SettingsObjects::SettingsSection section, 
         rpcParams[i].setDescription(par.description);
         rpcParams[i].setAttributes(par.attributes);
         ::capnp::List<::capnp::Text>::Builder rpcParamValues = rpcParams[i].initValue(par.value.size());
-        for(int v=0; v<par.value.size(); v++)
+        for(std::size_t v=0; v<par.value.size(); v++)
             rpcParamValues.set(v, par.value.at(v));
 
         ::capnp::List<::capnp::Text>::Builder rpcParamEnumValues = rpcParams[i].initEnumValues(par.enumValues.size());
-        for(int v=0; v<par.enumValues.size(); v++)
+        for(std::size_t v=0; v<par.enumValues.size(); v++)
             rpcParamEnumValues.set(v, par.enumValues.at(v));
         rpcParams[i].setKey(par.key);
         rpcParams[i].setTitle(par.title);

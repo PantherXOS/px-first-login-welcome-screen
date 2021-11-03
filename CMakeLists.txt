@@ -41,4 +41,4 @@ FILE(GLOB SOURCES
 
 add_executable(px-first-login-welcome-screen ${SOURCES} ${CapnpSources} ${CapnpHeaders})
 target_link_libraries(px-first-login-welcome-screen ${QT5_LIBRARIES} CapnProto::capnp-rpc)
-install(TARGETS px-first-login-welcome-screen DESTINATION lib)
+install(TARGETS px-first-login-welcome-screen DESTINATION bin)
