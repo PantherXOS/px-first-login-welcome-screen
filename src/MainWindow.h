@@ -5,6 +5,8 @@
 #include <QBoxLayout>
 #include <QWidget>
 #include <QPushButton>
+#include <QLabel>
+#include <QTimer>
 
 #include "px-settings-service/SettingsObjects.h"
 #include "AsyncTaskRunner.h"
@@ -18,16 +20,18 @@ class MainWindow : public QMainWindow {
         QBoxLayout *createTopLayout();
         QBoxLayout *createContentLayout();
         QBoxLayout *createBottomLayout();
-        int reboot();
+        int         reboot();
         void        refreshStylesheet();
 
         SettingsObjects::SettingsSectionList sections;
         QWidget *settingsWidget;
+        QLabel  *iconLabel;
         QPushButton *rebootButton;
         AsyncTaskRunner rebootTaskRunner;
         AsyncTaskRunner passwordTaskRunner;
         AsyncTaskRunner softwareUpdateTaskRunner;
         AsyncTaskRunner rootPasswordTaskRunner;
+        QTimer          iconThemeTimer;
 };
 
 #endif

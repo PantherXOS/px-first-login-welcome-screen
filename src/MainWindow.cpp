@@ -2,7 +2,6 @@
 #include <vector>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
-#include <QLabel>
 #include <QDebug>
 #include <QDBusInterface>
 #include <QDBusPendingReply>
@@ -43,12 +42,22 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent){
     widget->setLayout(mainLayout);
     // setLayout(mainLayout);
     setCentralWidget(widget);
+    connect(&iconThemeTimer, &QTimer::timeout,[&](){
+        iconThemeTimer.stop();
+        QIcon qicon = QIcon::fromTheme("panther");
+        QSize iconSize(172,172);
+        QPixmap pixmap = qicon.pixmap(iconSize, QIcon::Normal, QIcon::On);
+        iconLabel->setPixmap(pixmap);
+        iconLabel->setFixedSize(iconSize);
+        iconLabel->setAlignment(Qt::AlignBottom);
+    });
+    refreshStylesheet();
     installEventFilter(this);
 }
 
 
 QBoxLayout *MainWindow::createTopLayout(){
-    auto titleLabel = new QLabel("<font size=+8>Thank you for installing PantherX</font><br><font size=+2>We're almost there, just 3 more steps.</font>");
+    auto titleLabel = new QLabel("<font size=+8>Thank you for installing PantherX</font><br><font size=+1>You are almost there! Only 4x more steps to finalize the setup.</font>", this);
     auto font = titleLabel->font();
     font.setPointSize(17);
     titleLabel->setFont(font);
@@ -60,13 +69,13 @@ QBoxLayout *MainWindow::createTopLayout(){
 
 QBoxLayout *MainWindow::createContentLayout(){
     // password widgets
-    auto passwordsLabel = new QLabel("Set a user and root password", this);
+    auto passwordsLabel = new QLabel("Set user and root password", this);
     auto font = passwordsLabel->font();
-    font.setPointSize(18);
+    font.setPointSize(17);
     passwordsLabel->setFont(font);
     
     passwordsLabel->setSizePolicy(QSizePolicy::MinimumExpanding,QSizePolicy::Minimum);
-    auto passwordButton = new QPushButton("Run", this);
+    auto passwordButton = new QPushButton("Set password", this);
     connect(passwordButton, &QPushButton::released,[&](){
         passwordTaskRunner.asyncRun("sh", QStringList() << "-c" << "qterminal -e passwd \"$(whoami)\"");
     });
@@ -82,13 +91,13 @@ QBoxLayout *MainWindow::createContentLayout(){
     updateSystemLabel->setSizePolicy(QSizePolicy::MinimumExpanding,QSizePolicy::Minimum);
     updateSystemLabel->setFont(font);
 
-    auto updateSystemButton = new QPushButton("Run", this);
+    auto updateSystemButton = new QPushButton("Update", this);
     connect(updateSystemButton, &QPushButton::released, [&](){
         if(!softwareUpdateTaskRunner.running()) 
             softwareUpdateTaskRunner.asyncRun("px-software", QStringList() << "-i" << "system_updates");
     });
     // theme widgets
-    auto themeLabel = new QLabel("Switch Theme", this);
+    auto themeLabel = new QLabel("Use Dark Theme", this);
     themeLabel->setSizePolicy(QSizePolicy::MinimumExpanding,QSizePolicy::Minimum);
     themeLabel->setFont(font);
     auto themeCheckBox = new QCheckBox(this);
@@ -98,7 +107,7 @@ QBoxLayout *MainWindow::createContentLayout(){
                 for(auto &par : sec.params){
                     if(par.key==themeModuleName) {
                         par.value.clear();
-                        par.value.push_back((checked?"bright":"dark"));
+                        par.value.push_back((checked?"dark":"bright"));
                     }
                 }
                 RPCSettingsClient settingsClient;
@@ -115,7 +124,7 @@ QBoxLayout *MainWindow::createContentLayout(){
         if(sec.name==themeModuleName){
             for(auto &par : sec.params){
                 if(par.key==themeModuleName) {
-                    if(par.value.size() && par.value.at(0) == "bright")
+                    if(par.value.size() && par.value.at(0) == "dark")
                         themeCheckBox->setChecked(true);
                 }
             }
@@ -128,7 +137,7 @@ QBoxLayout *MainWindow::createContentLayout(){
     auto rebootLabel = new QLabel("Reboot", this);
     rebootLabel->setSizePolicy(QSizePolicy::MinimumExpanding,QSizePolicy::Minimum);
     rebootLabel->setFont(font);
-    rebootButton = new QPushButton("Run", this);
+    rebootButton = new QPushButton("Reboot", this);
     connect(rebootButton, &QPushButton::released,[&](){
         QMessageBox::StandardButton reply;
         reply = QMessageBox::question(this, "Reboot", "Are you sure?                               ",
@@ -171,9 +180,8 @@ QBoxLayout *MainWindow::createContentLayout(){
     settingsWidget = new QWidget(this);
     settingsWidget->setLayout(settingsLayout);
     settingsWidget->setContentsMargins(50,50,50,50);
-    refreshStylesheet();
 
-    auto contentLabel = new QLabel(tr("<font size=+2>After you complete these steps, issues like opening folders<br>from the menu and panel will be resolved permanently.</font>"));
+    auto contentLabel = new QLabel(tr("<font size=+1>After you complete these steps, issues like opening folders<br>from the menu and panel will be resolved permanently.</font>"));
 
     auto vlayout = new QVBoxLayout();
     vlayout->addWidget(settingsWidget);
@@ -189,20 +197,15 @@ QBoxLayout *MainWindow::createContentLayout(){
 
 QBoxLayout *MainWindow::createBottomLayout(){
     auto bottomLabel = new QLabel("Find more information on our Wiki at <a href=\"wiki.pantherx.org\">wiki.pantherx.org</a><br>\
-                                    or get help on the forum at <a href=\"community.pantherx.org\">community.pantherx.org</a>.");
+                                    or get help on the forum at <a href=\"community.pantherx.org\">community.pantherx.org</a>.", this);
     auto font = bottomLabel->font();
-    font.setPointSize(22);
+    font.setPointSize(18);
     bottomLabel->setFont(font);
     bottomLabel->setTextInteractionFlags(Qt::TextBrowserInteraction);
-    bottomLabel->setAlignment(Qt::AlignBottom);
+    bottomLabel->setAlignment(Qt::AlignVCenter);
 
-    QIcon qicon = QIcon::fromTheme("panther");
-    QSize iconSize(128,128);
-    QPixmap pixmap = qicon.pixmap(iconSize, QIcon::Normal, QIcon::On);
-    auto iconLabel = new QLabel;
+    iconLabel = new QLabel(this);
     iconLabel->setAttribute(Qt::WA_TranslucentBackground);
-    iconLabel->setPixmap(pixmap);
-    iconLabel->setFixedSize(iconSize);
 
     auto bottomLayout = new QHBoxLayout();
     bottomLayout->addWidget(bottomLabel);
@@ -240,11 +243,13 @@ void MainWindow::refreshStylesheet(){
     auto bg = QGuiApplication::palette().color(QPalette::Active, QPalette::Window).darker(110);
     auto fgcolor = QGuiApplication::palette().color(QPalette::Active, QPalette::Text);
     settingsWidget->setStyleSheet("QWidget {background-color: " + bg.name() + ";" + "color: " +  fgcolor.name() + "}");   
+    iconThemeTimer.start(200);    
 }
 
 bool MainWindow::eventFilter(QObject* object, QEvent* event) {
     if(event->type() == QEvent::PaletteChange) {
         refreshStylesheet();
+        return true;
     }
     return QMainWindow::eventFilter(object, event);
 }
