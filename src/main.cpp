@@ -10,7 +10,7 @@
 
 #define  FIRST_LOGIN_SCREEN_FILE_PATH       QStandardPaths::standardLocations(QStandardPaths::CacheLocation)[0]
 #define  FIRST_LOGIN_SCREEN_FILE_NAME       FIRST_LOGIN_SCREEN_FILE_PATH + "/info"
-#define  VERSION                            "0.0.3"
+#define  VERSION                            "0.0.4"
 
 int main(int argc, char *argv[]) {
     QApplication app(argc, argv);
