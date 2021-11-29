@@ -15,6 +15,8 @@
 #include <QSize>
 #include <QGuiApplication>
 
+#include "PasswordDialog.h"
+#include "Password.h"
 #include "px-settings-service/RpcSettingsClient.h"
 
 string themeModuleName = "theme";
@@ -77,11 +79,33 @@ QBoxLayout *MainWindow::createContentLayout(){
     passwordsLabel->setSizePolicy(QSizePolicy::MinimumExpanding,QSizePolicy::Minimum);
     auto passwordButton = new QPushButton("Set password", this);
     connect(passwordButton, &QPushButton::released,[&](){
-        passwordTaskRunner.asyncRun("sh", QStringList() << "-c" << "qterminal -e passwd \"$(whoami)\"");
+        bool ok = false;
+        QString username = QString(getenv("USER"));
+        auto list = PasswordDialog::getStrings(username, this, &ok);
+        if(ok){
+            QString upass = list[username];
+            QString rpass = list["root"];
+            
+            if(!upass.isEmpty() && !rpass.isEmpty()){
+                Password userPass(upass.toStdString(), Password::CryptMethod::SHA_512);
+                Password rootPass(rpass.toStdString(), Password::CryptMethod::SHA_512);
+                passwordTaskRunner.asyncRun("pkexec", 
+                                            QStringList()   << "--disable-internal-agent" 
+                                                            << "px-first-login-password-helper"
+                                                            << "-u" << username
+                                                            << "-p" << QString::fromStdString(userPass.getHash())
+                                                            << "-r" << QString::fromStdString(rootPass.getHash()));
+            }
+        }
     });
-    connect(&passwordTaskRunner, &AsyncTaskRunner::done,[&](const QString &outData, const QString &errData){
-        rootPasswordTaskRunner.asyncRun("sh", QStringList() << "-c" << "qterminal -e sudo passwd \"root\"");
-        qDebug() << "DONE: " << outData << errData;
+    connect(&passwordTaskRunner, &AsyncTaskRunner::done,[&, passwordButton](const QString &outData, const QString &errData){
+        qDebug() << outData;
+        qDebug() << errData;
+        passwordButton->setDisabled(true);
+    });
+
+    connect(&passwordTaskRunner, &AsyncTaskRunner::failed,[&](const QString &errData){
+        qDebug() << errData;
     });
     auto passwordsLayout = new QHBoxLayout();
     passwordsLayout->addWidget(passwordsLabel);

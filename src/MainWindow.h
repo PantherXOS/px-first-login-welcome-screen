@@ -30,7 +30,6 @@ class MainWindow : public QMainWindow {
         AsyncTaskRunner rebootTaskRunner;
         AsyncTaskRunner passwordTaskRunner;
         AsyncTaskRunner softwareUpdateTaskRunner;
-        AsyncTaskRunner rootPasswordTaskRunner;
         QTimer          iconThemeTimer;
 };
 
